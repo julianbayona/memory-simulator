@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Traducción de Memoria</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .container2 {
+            max-width: 1200px;
+            margin: 0 auto;
+            margin-top: 1em;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            color: #333;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #3730a3;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+            width: 100%;
+            justify-content: center;
+            font-size: 1.1rem;
+            padding: 15px;
+        }
+
+        .btn-success:hover {
+            background: #059669;
+        }
+
+        .btn-success:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+            padding: 5px 10px;
+            font-size: 0.8rem;
+        }
+
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+            padding: 5px 10px;
+            font-size: 0.9rem;
+        }
+
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+
+        .processes-panel {
+            max-height: 500px;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+
+        .processes-panel::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .processes-panel::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .processes-panel::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        .process-item {
+            background: #f8fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .process-item:hover {
+            border-color: #4f46e5;
+            transform: translateY(-2px);
+        }
+
+        .process-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .process-name {
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            background: transparent;
+            padding: 5px;
+            width: 200px;
+        }
+
+        .process-name:focus {
+            outline: none;
+            border-bottom-color: #4f46e5;
+        }
+
+        .process-size {
+            background: #3b82f6;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .variables-list {
+            margin-bottom: 10px;
+        }
+
+        .variable-item {
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .variable-name {
+            flex: 1;
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+            padding: 5px 8px;
+            font-size: 0.9rem;
+        }
+
+        .variable-type {
+            border: 1px solid #d1d5db;
+            border-radius: 5px;
+            padding: 5px 8px;
+            font-size: 0.9rem;
+        }
+
+        .variable-size {
+            font-size: 0.8rem;
+            color: #6b7280;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #9ca3af;
+            padding: 40px 20px;
+        }
+
+        .memory-status {
+            margin-bottom: 20px;
+        }
+
+        .memory-bar {
+            width: 100%;
+            height: 20px;
+            background: #e5e7eb;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 10px 0;
+        }
+
+        .memory-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #3b82f6);
+            border-radius: 10px;
+            transition: width 0.5s ease;
+        }
+
+        .memory-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .config-panel {
+            background: #f8fafc;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .config-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+
+        .page-table {
+            width: 100%;
+            margin-top: 30px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .table th {
+            background: #4f46e5;
+            color: white;
+            padding: 15px 10px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .table tbody tr:hover {
+            background: #f8fafc;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-valid {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-invalid {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #e5e7eb;
+            border-top: 5px solid #4f46e5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(52, 152, 219, 0.1);
+            padding: 10px 15px;
+            border-radius: 10px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        input[type="number"] {
+            padding: 8px 12px;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            width: 80px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        input[type="text"] {
+            padding: 8px 12px;
+            border: 2px solid #3498db;
+            border-radius: 8px;
+            width: 150px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        button {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .reset-btn {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+        }
+
+        .reset-btn:hover {
+            box-shadow: 0 6px 20px rgba(231, 76, 60, 0.4);
+        }
+
+        .memory-container {
+            margin-bottom: 30px;
+        }
+
+        .memory-title {
+            font-size: 1.5em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .memory-frames {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .frame {
+            width: 120px;
+            height: 100px;
+            border: 3px solid #34495e;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #ecf0f1, #bdc3c7);
+            transition: all 0.4s ease;
+            position: relative;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .frame.occupied {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+            border-color: #27ae60;
+            transform: scale(1.05);
+        }
+
+        .frame.recently-used {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+            border-color: #e67e22;
+            animation: pulse 1s ease-in-out;
+        }
+
+        .frame.lru {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            border-color: #c0392b;
+            animation: shake 0.5s ease-in-out;
+        }
+
+        .frame-number {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            background: #34495e;
+            color: white;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .process-info {
+            text-align: center;
+        }
+
+        .process-name {
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .last-used {
+            font-size: 10px;
+            opacity: 0.8;
+        }
+
+        .statistics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(52, 152, 219, 0.3);
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+
+        .log-container {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 20px;
+            border-radius: 15px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            box-shadow: inset 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .log-entry {
+            margin-bottom: 8px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .log-entry.success {
+            background-color: rgba(46, 204, 113, 0.2);
+            border-left: 3px solid #2ecc71;
+        }
+
+        .log-entry.warning {
+            background-color: rgba(243, 156, 18, 0.2);
+            border-left: 3px solid #f39c12;
+        }
+
+        .log-entry.error {
+            background-color: rgba(231, 76, 60, 0.2);
+            border-left: 3px solid #e74c3c;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1.05); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .queue-container {
+            margin-top: 20px;
+            background: rgba(149, 165, 166, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        .queue-title {
+            font-size: 1.2em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+
+        .queue-list {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .queue-item {
+            background: linear-gradient(135deg, #95a5a6, #7f8c8d);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .process-header {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .variable-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Simulador de Traducción de Memoria</h1>
+            <p>Gestiona procesos, variables y simula la tabla de páginas</p>
+        </div>
+
+        <div class="main-grid">
+            <!-- Panel de Procesos -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">⚙️ Procesos</h2>
+                    <button class="btn btn-primary" onclick="addProcess()">
+                        ➕ Agregar Proceso
+                    </button>
+                </div>
+
+                <div class="processes-panel" id="processesPanel">
+                    <div class="empty-state">
+                        <p>📋 No hay procesos. Agrega uno para comenzar.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel de Control -->
+            <div>
+                <!-- Estado de Memoria -->
+                <div class="card memory-status">
+                    <h3 class="card-title">💾 Estado de Memoria</h3>
+                    <div class="memory-info">
+                        <span>Usado: <span id="memoryUsed">0</span> KB</span>
+                        <span>Total: 1024 KB</span>
+                    </div>
+                    <div class="memory-bar">
+                        <div class="memory-fill" id="memoryFill" style="width: 0%"></div>
+                    </div>
+                    <div style="text-align: center; font-size: 0.9rem; color: #6b7280;">
+                        <span id="memoryPercent">0.0</span>% utilizado
+                    </div>
+                </div>
+
+                <!-- Botón de Simulación -->
+                <div class="card">
+                    <button class="btn btn-success" id="simulateBtn" onclick="simulateMemory()">
+                        ▶️ Simular Carga
+                    </button>
+                </div>
+
+                <!-- Configuración -->
+                <div class="card">
+                    <h3 class="card-title">⚙️ Configuración</h3>
+                    <div class="config-panel">
+                        <div class="config-item">
+                            <span>Tamaño de Página:</span>
+                            <span>4 KB</span>
+                        </div>
+                        <div class="config-item">
+                            <span>Memoria Total:</span>
+                            <span>1024 KB</span>
+                        </div>
+                        <div class="config-item">
+                            <span>Páginas Totales:</span>
+                            <span>256</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Páginas -->
+        <div class="page-table hidden" id="pageTableSection">
+            <div class="card">
+                <h2 class="card-title">📊 Tabla de Páginas</h2>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Proceso</th>
+                            <th>Página Virtual</th>
+                            <th>Página Física</th>
+                            <th>Dir. Virtual</th>
+                            <th>Dir. Física</th>
+                            <th>Tamaño</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pageTableBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay hidden" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h3>Simulando carga de procesos...</h3>
+            <p>Generando tabla de páginas</p>
+        </div>
+    </div>
+
+
+     <!-- Asignacion -->
+    <div class="container2">
+        <h1>🧠 Simulador LRU - Gestión de Memoria</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="memorySize">Frames de Memoria:</label>
+                <input type="number" id="memorySize" value="4" min="2" max="8">
+            </div>
+            <div class="control-group">
+                <label for="processName">Proceso:</label>
+                <input type="text" id="processName" placeholder="ej: P1" maxlength="10">
+            </div>
+            <button onclick="loadProcess()">Cargar Proceso</button>
+            <button onclick="generateRandomSequence()">Secuencia Aleatoria</button>
+            <button class="reset-btn" onclick="resetSimulation()">Reiniciar</button>
+        </div>
+
+        <div class="statistics">
+            <div class="stat-card">
+                <div class="stat-number" id="totalRequests">0</div>
+                <div class="stat-label">Total Solicitudes</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="pageHits">0</div>
+                <div class="stat-label">Page Hits</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="pageFaults">0</div>
+                <div class="stat-label">Page Faults</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="hitRate">0%</div>
+                <div class="stat-label">Tasa de Aciertos</div>
+            </div>
+        </div>
+
+        <div class="memory-container">
+            <div class="memory-title">Memoria Principal (Frames)</div>
+            <div class="memory-frames" id="memoryFrames"></div>
+        </div>
+
+        <div class="queue-container">
+            <div class="queue-title">Cola de Procesos Recientes (LRU Order)</div>
+            <div class="queue-list" id="lruQueue"></div>
+        </div>
+
+        <div class="memory-container">
+            <div class="memory-title">Registro de Eventos</div>
+            <div class="log-container" id="eventLog"></div>
+        </div>
+    </div>
+
+
+    <script>
+        // Variables globales
+        let processes = [];
+        let processCounter = 0;
+        let variableCounter = 0;
+        const MEMORY_SIZE = 1024; // KB
+        const PAGE_SIZE = 4; // KB
+
+        // Tipos de datos y sus tamaños
+        const dataTypes = {
+            'int': 4,
+            'float': 4,
+            'double': 8,
+            'char': 1,
+            'string': 16,
+            'array': 32,
+            'pointer': 8
+        };
+
+        // Agregar proceso
+        function addProcess() {
+            processCounter++;
+            const process = {
+                id: Date.now(),
+                name: `Proceso_${processCounter}`,
+                variables: [],
+                totalSize: 0
+            };
+            
+            processes.push(process);
+            renderProcesses();
+            updateMemoryStatus();
+        }
+
+        // Eliminar proceso
+        function removeProcess(processId) {
+            processes = processes.filter(p => p.id !== processId);
+            renderProcesses();
+            updateMemoryStatus();
+        }
+
+        // Agregar variable
+        function addVariable(processId) {
+            const process = processes.find(p => p.id === processId);
+            if (process) {
+                variableCounter++;
+                const variable = {
+                    id: Date.now(),
+                    name: `var_${variableCounter}`,
+                    type: 'int',
+                    size: dataTypes['int']
+                };
+                process.variables.push(variable);
+                updateProcessSize(processId);
+                renderProcesses();
+                updateMemoryStatus();
+            }
+        }
+
+        // Eliminar variable
+        function removeVariable(processId, variableId) {
+            const process = processes.find(p => p.id === processId);
+            if (process) {
+                process.variables = process.variables.filter(v => v.id !== variableId);
+                updateProcessSize(processId);
+                renderProcesses();
+                updateMemoryStatus();
+            }
+        }
+
+        // Actualizar variable
+        function updateVariable(processId, variableId, field, value) {
+            const process = processes.find(p => p.id === processId);
+            if (process) {
+                const variable = process.variables.find(v => v.id === variableId);
+                if (variable) {
+                    variable[field] = value;
+                    if (field === 'type') {
+                        variable.size = dataTypes[value];
+                    }
+                    updateProcessSize(processId);
+                    renderProcesses();
+                    updateMemoryStatus();
+                }
+            }
+        }
+
+        // Actualizar nombre de proceso
+        function updateProcessName(processId, name) {
+            const process = processes.find(p => p.id === processId);
+            if (process) {
+                process.name = name;
+            }
+        }
+
+        // Calcular tamaño total del proceso
+        function updateProcessSize(processId) {
+            const process = processes.find(p => p.id === processId);
+            if (process) {
+                process.totalSize = process.variables.reduce((sum, v) => sum + v.size, 0);
+            }
+        }
+
+        // Renderizar procesos
+        function renderProcesses() {
+            const panel = document.getElementById('processesPanel');
+            
+            if (processes.length === 0) {
+                panel.innerHTML = `
+                    <div class="empty-state">
+                        <p>📋 No hay procesos. Agrega uno para comenzar.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            panel.innerHTML = processes.map(process => `
+                <div class="process-item">
+                    <div class="process-header">
+                        <input type="text" class="process-name" value="${process.name}" 
+                               onchange="updateProcessName(${process.id}, this.value)">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="process-size">${process.totalSize} KB</span>
+                            <button class="btn btn-danger" onclick="removeProcess(${process.id})">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="variables-list">
+                        ${process.variables.map(variable => `
+                            <div class="variable-item">
+                                <input type="text" class="variable-name" value="${variable.name}"
+                                       onchange="updateVariable(${process.id}, ${variable.id}, 'name', this.value)">
+                                <select class="variable-type" 
+                                        onchange="updateVariable(${process.id}, ${variable.id}, 'type', this.value)">
+                                    ${Object.keys(dataTypes).map(type => 
+                                        `<option value="${type}" ${variable.type === type ? 'selected' : ''}>${type}</option>`
+                                    ).join('')}
+                                </select>
+                                <span class="variable-size">${variable.size}B</span>
+                                <button class="btn btn-danger" onclick="removeVariable(${process.id}, ${variable.id})">
+                                    🗑️
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <button class="btn btn-secondary" onclick="addVariable(${process.id})">
+                        ➕ Agregar Variable
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // Actualizar estado de memoria
+        function updateMemoryStatus() {
+            const totalUsed = processes.reduce((sum, p) => sum + p.totalSize, 0);
+            const percentage = Math.min((totalUsed / MEMORY_SIZE) * 100, 100);
+
+            document.getElementById('memoryUsed').textContent = totalUsed;
+            document.getElementById('memoryFill').style.width = percentage + '%';
+            document.getElementById('memoryPercent').textContent = percentage.toFixed(1);
+
+            const simulateBtn = document.getElementById('simulateBtn');
+            simulateBtn.disabled = processes.length === 0;
+        }
+
+        // Simular asignación de memoria
+        function simulateMemory() {
+            if (processes.length === 0) return;
+
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+            document.getElementById('simulateBtn').disabled = true;
+
+            setTimeout(() => {
+                generatePageTable();
+                document.getElementById('loadingOverlay').classList.add('hidden');
+                document.getElementById('simulateBtn').disabled = false;
+                document.getElementById('pageTableSection').classList.remove('hidden');
+            }, 2000);
+        }
+
+        // Generar tabla de páginas
+        function generatePageTable() {
+            const tableBody = document.getElementById('pageTableBody');
+            let currentAddress = 0;
+            let pageEntries = [];
+
+            processes.forEach(process => {
+                const pagesNeeded = Math.ceil(process.totalSize / PAGE_SIZE);
+                
+                for (let i = 0; i < pagesNeeded; i++) {
+                    const physicalPage = Math.floor(currentAddress / PAGE_SIZE);
+                    const virtualAddress = `0x${(i * PAGE_SIZE * 1024).toString(16).toUpperCase().padStart(8, '0')}`;
+                    const physicalAddress = `0x${(currentAddress * 1024).toString(16).toUpperCase().padStart(8, '0')}`;
+                    const pageSize = Math.min(PAGE_SIZE, process.totalSize - (i * PAGE_SIZE));
+
+                    pageEntries.push({
+                        processName: process.name,
+                        virtualPage: i,
+                        physicalPage: physicalPage,
+                        virtualAddress: virtualAddress,
+                        physicalAddress: physicalAddress,
+                        size: pageSize,
+                        valid: true
+                    });
+
+                    currentAddress += PAGE_SIZE;
+                }
+            });
+
+            tableBody.innerHTML = pageEntries.map(entry => `
+                <tr>
+                    <td><strong>${entry.processName}</strong></td>
+                    <td style="font-family: monospace;">${entry.virtualPage}</td>
+                    <td style="font-family: monospace;">${entry.physicalPage}</td>
+                    <td style="font-family: monospace; color: #3b82f6;">${entry.virtualAddress}</td>
+                    <td style="font-family: monospace; color: #10b981;">${entry.physicalAddress}</td>
+                    <td>${entry.size} KB</td>
+                    <td>
+                        <span class="status-badge ${entry.valid ? 'status-valid' : 'status-invalid'}">
+                            ${entry.valid ? 'Válida' : 'Inválida'}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Inicializar
+        updateMemoryStatus();
+
+        class LRUMemorySimulator {
+            constructor() {
+                this.memorySize = 4;
+                this.memory = [];
+                this.lruQueue = [];
+                this.totalRequests = 0;
+                this.pageHits = 0;
+                this.pageFaults = 0;
+                this.timestamp = 0;
+                
+                this.initializeMemory();
+                this.updateDisplay();
+            }
+
+            initializeMemory() {
+                const memSizeInput = document.getElementById('memorySize');
+                this.memorySize = parseInt(memSizeInput.value);
+                this.memory = new Array(this.memorySize).fill(null);
+                this.lruQueue = [];
+                this.createMemoryFrames();
+            }
+
+            createMemoryFrames() {
+                const container = document.getElementById('memoryFrames');
+                container.innerHTML = '';
+                
+                for (let i = 0; i < this.memorySize; i++) {
+                    const frame = document.createElement('div');
+                    frame.className = 'frame';
+                    frame.innerHTML = `
+                        <div class="frame-number">${i}</div>
+                        <div class="process-info">
+                            <div class="process-name">Vacío</div>
+                        </div>
+                    `;
+                    container.appendChild(frame);
+                }
+            }
+
+            loadProcess(processName) {
+                if (!processName || processName.trim() === '') {
+                    this.addLogEntry('Error: Nombre de proceso vacío', 'error');
+                    return;
+                }
+
+                this.totalRequests++;
+                this.timestamp++;
+                
+                // Verificar si el proceso ya está en memoria (Page Hit)
+                const existingIndex = this.memory.findIndex(item => 
+                    item && item.name === processName
+                );
+
+                if (existingIndex !== -1) {
+                    // Page Hit - actualizar orden LRU
+                    this.pageHits++;
+                    this.memory[existingIndex].lastUsed = this.timestamp;
+                    this.updateLRUQueue(processName);
+                    this.addLogEntry(`✓ Page Hit: ${processName} ya está en memoria (Frame ${existingIndex})`, 'success');
+                    this.highlightFrame(existingIndex, 'recently-used');
+                } else {
+                    // Page Fault - necesita cargar el proceso
+                    this.pageFaults++;
+                    this.handlePageFault(processName);
+                }
+
+                this.updateDisplay();
+                this.updateStatistics();
+            }
+
+            handlePageFault(processName) {
+                // Buscar frame vacío
+                const emptyIndex = this.memory.findIndex(item => item === null);
+                
+                if (emptyIndex !== -1) {
+                    // Hay espacio disponible
+                    this.memory[emptyIndex] = {
+                        name: processName,
+                        lastUsed: this.timestamp
+                    };
+                    this.updateLRUQueue(processName);
+                    this.addLogEntry(`→ Proceso ${processName} cargado en Frame ${emptyIndex}`, 'success');
+                    this.highlightFrame(emptyIndex, 'recently-used');
+                } else {
+                    // Memoria llena - aplicar LRU
+                    const lruIndex = this.findLRUFrame();
+                    const replacedProcess = this.memory[lruIndex].name;
+                    
+                    this.memory[lruIndex] = {
+                        name: processName,
+                        lastUsed: this.timestamp
+                    };
+                    
+                    this.updateLRUQueue(processName);
+                    this.addLogEntry(`⚠ LRU: ${replacedProcess} reemplazado por ${processName} en Frame ${lruIndex}`, 'warning');
+                    this.highlightFrame(lruIndex, 'lru');
+                    
+                    // Mostrar brevemente qué frame fue el LRU
+                    setTimeout(() => {
+                        this.highlightFrame(lruIndex, 'recently-used');
+                    }, 1000);
+                }
+            }
+
+            findLRUFrame() {
+                let lruIndex = 0;
+                let lruTime = this.memory[0].lastUsed;
+                
+                for (let i = 1; i < this.memory.length; i++) {
+                    if (this.memory[i] && this.memory[i].lastUsed < lruTime) {
+                        lruTime = this.memory[i].lastUsed;
+                        lruIndex = i;
+                    }
+                }
+                
+                return lruIndex;
+            }
+
+            updateLRUQueue(processName) {
+                // Remover el proceso si ya está en la cola
+                this.lruQueue = this.lruQueue.filter(p => p !== processName);
+                // Agregar al final (más recientemente usado)
+                this.lruQueue.push(processName);
+            }
+
+            highlightFrame(index, type) {
+                const frames = document.querySelectorAll('.frame');
+                if (frames[index]) {
+                    frames[index].classList.remove('recently-used', 'lru');
+                    frames[index].classList.add(type);
+                    
+                    setTimeout(() => {
+                        frames[index].classList.remove(type);
+                    }, 2000);
+                }
+            }
+
+            updateDisplay() {
+                const frames = document.querySelectorAll('.frame');
+                
+                frames.forEach((frame, index) => {
+                    const processInfo = frame.querySelector('.process-info');
+                    
+                    if (this.memory[index]) {
+                        const process = this.memory[index];
+                        frame.classList.add('occupied');
+                        processInfo.innerHTML = `
+                            <div class="process-name">${process.name}</div>
+                            <div class="last-used">T: ${process.lastUsed}</div>
+                        `;
+                    } else {
+                        frame.classList.remove('occupied');
+                        processInfo.innerHTML = `
+                            <div class="process-name">Vacío</div>
+                        `;
+                    }
+                });
+
+                // Actualizar cola LRU
+                this.updateLRUQueueDisplay();
+            }
+
+            updateLRUQueueDisplay() {
+                const queueContainer = document.getElementById('lruQueue');
+                queueContainer.innerHTML = '';
+                
+                if (this.lruQueue.length === 0) {
+                    queueContainer.innerHTML = '<div class="queue-item">Cola vacía</div>';
+                    return;
+                }
+
+                // Mostrar desde el menos reciente al más reciente
+                this.lruQueue.forEach((process, index) => {
+                    const item = document.createElement('div');
+                    item.className = 'queue-item';
+                    item.textContent = process;
+                    item.style.opacity = (index + 1) / this.lruQueue.length;
+                    queueContainer.appendChild(item);
+                });
+            }
+
+            updateStatistics() {
+                document.getElementById('totalRequests').textContent = this.totalRequests;
+                document.getElementById('pageHits').textContent = this.pageHits;
+                document.getElementById('pageFaults').textContent = this.pageFaults;
+                
+                const hitRate = this.totalRequests > 0 ? 
+                    ((this.pageHits / this.totalRequests) * 100).toFixed(1) : 0;
+                document.getElementById('hitRate').textContent = hitRate + '%';
+            }
+
+            addLogEntry(message, type = 'info') {
+                const logContainer = document.getElementById('eventLog');
+                const entry = document.createElement('div');
+                entry.className = `log-entry ${type} slide-in`;
+                entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+                
+                logContainer.appendChild(entry);
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+
+            generateRandomSequence() {
+                const processes = ['P1', 'P2', 'P3', 'P4', 'P5', 'P6'];
+                const sequenceLength = 10;
+                
+                this.addLogEntry('=== Iniciando secuencia aleatoria ===', 'info');
+                
+                let index = 0;
+                const interval = setInterval(() => {
+                    if (index >= sequenceLength) {
+                        clearInterval(interval);
+                        this.addLogEntry('=== Secuencia completada ===', 'info');
+                        return;
+                    }
+                    
+                    const randomProcess = processes[Math.floor(Math.random() * processes.length)];
+                    this.loadProcess(randomProcess);
+                    index++;
+                }, 1500);
+            }
+
+            reset() {
+                this.memory = new Array(this.memorySize).fill(null);
+                this.lruQueue = [];
+                this.totalRequests = 0;
+                this.pageHits = 0;
+                this.pageFaults = 0;
+                this.timestamp = 0;
+                
+                this.updateDisplay();
+                this.updateStatistics();
+                document.getElementById('eventLog').innerHTML = '';
+                this.addLogEntry('Sistema reiniciado', 'info');
+            }
+        }
+
+        // Instancia global del simulador
+        let simulator = new LRUMemorySimulator();
+
+        // Funciones para los controles
+        function loadProcess() {
+            const processInput = document.getElementById('processName');
+            const processName = processInput.value.trim();
+            simulator.loadProcess(processName);
+            processInput.value = '';
+            processInput.focus();
+        }
+
+        function generateRandomSequence() {
+            simulator.generateRandomSequence();
+        }
+
+        function resetSimulation() {
+            simulator.reset();
+        }
+
+        // Event listeners
+        document.getElementById('memorySize').addEventListener('change', function() {
+            simulator.initializeMemory();
+            simulator.updateDisplay();
+        });
+
+        document.getElementById('processName').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                loadProcess();
+            }
+        });
+
+        // Enfocar el input al cargar la página
+        document.getElementById('processName').focus();
+    </script>
+</body>
+</html>
